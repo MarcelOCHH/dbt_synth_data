@@ -1,5 +1,5 @@
 {% macro synth_var(data) %}
-    {{ return(synth_dynamic_var(var(data))) }}
+    {{ return(dbt_synth_data.synth_dynamic_var(var(data))) }}
 {% endmacro %}
 
 {% macro synth_dynamic_var(data) %}
@@ -37,11 +37,11 @@
         {% for param, value in data[first_key]|items %}
             {% do my_params.update({param: synth_dynamic_var(value)}) %}
         {% endfor %}
-        {{ return(synth_call_macro(my_macro, my_params)) }}
+        {{ return(dbt_synth_data.synth_call_macro(my_macro, my_params)) }}
     {% elif data is string and data[-2:]=="()" %}
         {# CASE B #}
         {% set my_macro = data[0:-2] %}
-        {{ synth_call_macro(my_macro, {})() }}
+        {{ dbt_synth_data.synth_call_macro(my_macro, {})() }}
     {% else %}
         {# CASE C #}
         {{ return(data) }}
@@ -49,47 +49,47 @@
 {% endmacro %}
 
 {% macro synth_call_macro(name, params) %}
-    {% if 
+    {% if
            (name=='synth_distribution' and params.get('class', '')=='continuous' and params.get('type', '')=='uniform')
         or (name=='synth_distribution_continuous' and params.get('type', '')=='uniform')
         or (name=='synth_distribution_continuous_uniform')
     %}{{ return(dbt_synth_data.synth_distribution_continuous_uniform(min=params.get('min', 1), max=params.get('max', 1))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='continuous' and params.get('type', '')=='normal')
         or (name=='synth_distribution_continuous' and params.get('type', '')=='normal')
         or (name=='synth_distribution_continuous_normal')
     %}{{ return(dbt_synth_data.synth_distribution_continuous_normal(mean=params.get('mean', 0), stddev=params.get('stddev', 1))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='continuous' and params.get('type', '')=='exponential')
         or (name=='synth_distribution_continuous' and params.get('type', '')=='exponential')
         or (name=='synth_distribution_continuous_exponential')
     %}{{ return(dbt_synth_data.synth_distribution_continuous_exponential(lambda=params.get('lambda', 1.0))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='continuous' and params.get('type', '')=='laplace')
         or (name=='synth_distribution_continuous' and params.get('type', '')=='laplace')
         or (name=='synth_distribution_continuous_laplace')
     %}{{ return(dbt_synth_data.synth_distribution_continuous_laplace(mu=params.get('mu', 0.0),b=params.get('b', 1.0))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='continuous' and params.get('type', '')=='cauchy')
         or (name=='synth_distribution_continuous' and params.get('type', '')=='cauchy')
         or (name=='synth_distribution_continuous_cauchy')
     %}{{ return(dbt_synth_data.synth_distribution_continuous_cauchy(x0=params.get('x0', 0.0),gamma=params.get('gamma', 1.0))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='discrete' and params.get('type', '')=='bernoulli')
         or (name=='synth_distribution_discrete' and params.get('type', '')=='bernoulli')
         or (name=='synth_distribution_discrete_bernoulli')
     %}{{ return(dbt_synth_data.synth_distribution_discrete_bernoulli(p=params.get('p', 0.5))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='discrete' and params.get('type', '')=='binomial')
         or (name=='synth_distribution_discrete' and params.get('type', '')=='binomial')
         or (name=='synth_distribution_discrete_binomial')
     %}{{ return(dbt_synth_data.synth_distribution_discrete_binomial(n=params.get('n', 10), p=params.get('p', 0.5))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='discrete' and params.get('type', '')=='probabilities')
         or (name=='synth_distribution_discrete' and params.get('type', '')=='probabilities')
         or (name=='synth_distribution_discrete_probabilities')
     %}{{ return(dbt_synth_data.synth_distribution_discrete_probabilities(probabilities=params.get('probabilities', {}))) }}
-    {% elif 
+    {% elif
            (name=='synth_distribution' and params.get('class', '')=='discrete' and params.get('type', '')=='weights')
         or (name=='synth_distribution_discrete' and params.get('type', '')=='weights')
         or (name=='synth_distribution_discrete_weights')
