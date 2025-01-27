@@ -1,15 +1,15 @@
 {% macro synth_column_phone_number(name) -%}
     {% set join_fields %}
         '(' ||
-        {{ adapter.dispatch('synth_column_phone_number_chunk')(min=100, max=1000, pad_length=3) }}
+        {{ adapter.dispatch('synth_column_phone_number_chunk', 'dbt_synth_data')(min=100, max=1000, pad_length=3) }}
         || ') ' ||
-        {{ adapter.dispatch('synth_column_phone_number_chunk')(min=100, max=1000, pad_length=3) }}
+        {{ adapter.dispatch('synth_column_phone_number_chunk', 'dbt_synth_data')(min=100, max=1000, pad_length=3) }}
         || '-' ||
-        {{ adapter.dispatch('synth_column_phone_number_chunk')(min=1, max=1000, pad_length=4) }}
+        {{ adapter.dispatch('synth_column_phone_number_chunk', 'dbt_synth_data')(min=1, max=1000, pad_length=4) }}
         as {{name}}
     {% endset %}
     {{ dbt_synth_data.synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
-    
+
     {% set final_field %}
       {{name}}
     {% endset %}
@@ -42,5 +42,5 @@
     LPAD( ({{ dbt_synth_data.synth_distribution_discretize_floor(
         distribution=dbt_synth_data.synth_distribution_continuous_uniform(min=min, max=max)
     ) }})::varchar, {{pad_length}}, '0' )
-    
+
 {% endmacro%}

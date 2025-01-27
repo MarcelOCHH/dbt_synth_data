@@ -1,12 +1,12 @@
 {% macro synth_table(rows=1000) -%}
-    {{ return(adapter.dispatch('synth_table')(rows)) }}
+    {{ return(adapter.dispatch('synth_table', 'dbt_synth_data')(rows)) }}
 {% endmacro %}
 
 {% macro default__synth_table(rows=1000) -%}
-    
+
     {# Load CTE name (to support multiple synth CTEs in one model) #}
     {% set table_name = dbt_synth_data.synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
-    
+
     {% set ctes = dbt_synth_data.synth_retrieve('ctes') %}
     {# {{ ctes.values() | list | join(",") }} #}
     {% for name, cte in ctes.items() %}
@@ -14,11 +14,11 @@
             {{cte}}
         ) {% if ctes|length > 0 %} , {% endif %}
     {% endfor %}
-    
+
     {{table_name}}__base as (
         select
-            {{ adapter.dispatch('synth_table_rownum')() }} as __row_number
-        from {{ adapter.dispatch('synth_table_generator')(rows) }}
+            {{ adapter.dispatch('synth_table_rownum', 'dbt_synth_data')() }} as __row_number
+        from {{ adapter.dispatch('synth_table_generator', 'dbt_synth_data')(rows) }}
     ),
     {{table_name}}__join0 as (
         select
@@ -52,10 +52,10 @@
 {%- endmacro %}
 
 {% macro sqlite__synth_table(rows=1000) %}
-    
+
     {# Load CTE name (to support multiple synth CTEs in one model) #}
     {% set table_name = dbt_synth_data.synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
-    
+
     {% set ctes = dbt_synth_data.synth_retrieve('ctes') %}
     {% for name, cte in ctes.items() %}
         {% set query %}
@@ -72,7 +72,7 @@
     {% endfor %}
     {# {{ ctes.values() | list | join(",") }}
     {% if ctes|length > 0%},{% endif %} #}
-    
+
     {% set query %}
     drop table if exists {{table_name}}__base;
     {% endset %}
@@ -81,8 +81,8 @@
     {% set query %}
     create temp table {{table_name}}__base as
         select
-            {{ adapter.dispatch('synth_table_rownum')() }} as __row_number
-        from {{ adapter.dispatch('synth_table_generator')(rows) }}
+            {{ adapter.dispatch('synth_table_rownum', 'dbt_synth_data')() }} as __row_number
+        from {{ adapter.dispatch('synth_table_generator', 'dbt_synth_data')(rows) }}
     ;
     {% endset %}
     {% do run_query(query) %}

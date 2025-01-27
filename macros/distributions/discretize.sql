@@ -1,5 +1,5 @@
 {% macro synth_distribution_discretize_floor(distribution) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_floor')(distribution)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_floor', 'dbt_synth_data')(distribution)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_floor(distribution) -%}
@@ -25,7 +25,7 @@
 
 
 {% macro synth_distribution_discretize_ceil(distribution) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_ceil')(distribution)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_ceil', 'dbt_synth_data')(distribution)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_ceil(distribution) -%}
@@ -51,7 +51,7 @@
 
 
 {% macro synth_distribution_discretize_round(distribution, precision=0) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_round')(distribution, precision)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_round', 'dbt_synth_data')(distribution, precision)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_round(distribution, precision) -%}
@@ -99,11 +99,11 @@
     {%- endif -%}
 
     {%- if labels=='lower_bound' or labels=='upper_bound' or labels=='bucket_range' or labels=='bucket_average' -%}
-        
+
         {%- if strict_bounds -%}{# assume no value is outside [from,to] #}
             case width_bucket({{distribution}}, {{from}}, {{to}}, {{count}})
                 {% for i in range(1, count+1) %}
-                when {{i}} then 
+                when {{i}} then
                     {% if labels=='lower_bound' -%}
                     round( {{from + ((i-1)*size)}}, {{label_precision}} )
                     {% elif labels=='upper_bound' -%}
@@ -113,7 +113,7 @@
                     {% elif labels=='bucket_range' -%}
                     concat(
                         round( {{from + ((i-1)*size)}}, {{label_precision}} ),
-                        '{{bucket_range_separator}}', 
+                        '{{bucket_range_separator}}',
                         round( {{from + (i*size)}}, {{label_precision}} )
                     )
                     {%- endif %}
@@ -122,8 +122,8 @@
 
         {%- else -%}{# long-tail values could be outside [from,to] #}
             case width_bucket({{distribution}}, {{from}}, {{to}}, {{count-2}})
-                
-                when 0 then 
+
+                when 0 then
                     {% if labels=='lower_bound' -%}
                     '-Infinity'{% if target.type != 'sqlite' %}::float{% endif%}
                     {% elif labels=='upper_bound' -%}
@@ -137,9 +137,9 @@
                         round( {{from}}, {{label_precision}} )
                     )
                     {%- endif %}
-                
+
                 {% for i in range(1, count-1) %}
-                when {{i}} then 
+                when {{i}} then
                     {% if labels=='lower_bound' -%}
                     round( {{from + ((i-1)*size)}}, {{label_precision}} )
                     {% elif labels=='upper_bound' -%}
@@ -154,8 +154,8 @@
                     )
                     {%- endif %}
                 {% endfor %}
-                
-                when {{count-1}} then 
+
+                when {{count-1}} then
                     {% if labels=='lower_bound' -%}
                     round( {{to}}, {{label_precision}} )
                     {% elif labels=='upper_bound' -%}
@@ -169,10 +169,10 @@
                         'Infinity'{% if target.type != 'sqlite' %}::varchar{% endif%}
                     )
                     {%- endif %}
-            
+
             end
         {%- endif -%}
-        
+
     {%- elif labels is none -%}
         {%- if strict_bounds -%}{# assume no value is outside [from,to] #}
             width_bucket({{distribution}}, {{from}}, {{to}}, {{count}})
@@ -194,6 +194,6 @@
                 {% endfor %}
             end
         {%- endif -%}
-        
+
     {%- endif -%}
 {% endmacro %}
