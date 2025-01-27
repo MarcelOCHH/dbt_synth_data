@@ -35,7 +35,7 @@
         {% set my_macro = first_key[0:-2] %}
         {% set my_params = {} %}
         {% for param, value in data[first_key]|items %}
-            {% do my_params.update({param: synth_dynamic_var(value)}) %}
+            {% do my_params.update({param: dbt_synth_data.synth_dynamic_var(value)}) %}
         {% endfor %}
         {{ return(dbt_synth_data.synth_call_macro(my_macro, my_params)) }}
     {% elif data is string and data[-2:]=="()" %}
