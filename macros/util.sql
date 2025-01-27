@@ -14,7 +14,7 @@
 #}
 {% macro synth_get_randseed() %}
     {%- if not target.get("rand_seed") -%}
-    {%- do synth_set_randseed(var('synth_randseed')) -%}
+    {%- do dbt_synth_data.synth_set_randseed(var('synth_randseed')) -%}
     {%- set next_rand_seed = var('synth_randseed') -%}
     {%- else -%}
     {%- set next_rand_seed = target.get("rand_seed")|int + 1 -%}
@@ -42,7 +42,7 @@
         on the random value from step 1;
     (3) clean up by deleting the original random value column from step 1 using
         `add_cleanup_hook()`
-    
+
     After building your table, you should (nearly) always finish with
         {{ config(post_hook=dbt_synth.get_post_hooks())}}
     which will first run the update hooks and then run the cleanup hooks.
@@ -61,7 +61,7 @@
 
 {%- macro synth_get_post_hooks() -%}
     {% set posthooks %}
-    
+
     {% if target.get("updatehooks") %}
     {% for updatehook in target.get("updatehooks") | unique %}
         {{ updatehook }};
@@ -73,9 +73,9 @@
         {{ cleanuphook }};
     {% endfor %}
     {% endif %}
-    
+
     {% endset %}
-    
+
     {{ return(posthooks) }}
 {%- endmacro %}
 
